@@ -1,0 +1,41 @@
+{
+    "name": "C You Later, Matrix!",
+    "deps": [
+        "gcc",
+        "perl",
+        "python3"
+    ],
+    "tasks": [
+        {
+            "name": "window_join",
+            "points": 25,
+            "tests": 15,
+            "timeout": 5,
+            "stdin": true,
+            "stdout": true,
+            "valgrind": false
+        },
+        {
+            "name": "akari",
+            "points": 25,
+            "tests": 25,
+            "timeout": 5,
+            "stdin": true,
+            "stdout": true,
+            "valgrind": false
+
+        },
+        {
+            "name": "helicopters",
+            "points": 30,
+            "tests": 32,
+            "timeout": 10,
+            "stdin": true,
+            "stdout": true,
+            "valgrind": false
+        }
+    ],
+    "coding_style": 10,
+    "penalty_warnings": 5,
+    "penalty_readme": 10
+}
