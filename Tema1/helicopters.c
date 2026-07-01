@@ -12,8 +12,7 @@ void citire_teren(int n, int m)
 {
 	for (int i = 1; i <= n; i++) {
 		for (int j = 1; j <= m; j++) {
-			if (scanf("%d", &a[i][j]) != 1)
-				return;
+			scanf("%d", &a[i][j]);
 		}
 	}
 }
@@ -91,13 +90,11 @@ int main(void)
 	int vesct_gresite[MAX_VAL];
 	coordonate coord[MAX_VAL];
 
-	if (scanf("%d %d", &n, &m) != 2)
-		return 0;
+	scanf("%d %d", &n, &m);
 
 	citire_teren(n, m);
 
-	if (scanf("%d", &k) != 1)
-		return 0;
+	scanf("%d", &k);
 
 	for (int idx = 1; idx <= k; idx++) {
 		scanf("%d %d %d %d %d", &coord[idx].r1, &coord[idx].c1,
