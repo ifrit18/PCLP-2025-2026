@@ -11,6 +11,7 @@ void read_mtx(char a[105][105], int n, int m) {
 }
 
 bool ok(char c) {
+    // Functie care verifica daca avem casuta neagra.
     if (c != '#' && c != '0' && c != '1' && c != '2' && c != '3' && c != '4') {
         return true;
     }
@@ -21,7 +22,9 @@ void optiunea_1_light(char a[105][105], int n, int m) {
     int i = 0, j = 0, r = 0, c = 0;
     for (i = 0; i < n; ++i) {
         for (j = 0; j < m; ++j) {
+            // Verificam daca avem bec, apoi marcam cu x portiunile adiacente.
             if (a[i][j] == 'L') {
+                // Parcurgem liniile si coloanele, apoi marcam cu x pentru a semnifica ca sunt zone iluminate
                 r = i - 1;
                 while (r >= 0 && ok(a[r][j]) == 1) {
                     if (a[r][j] == '-')
@@ -56,6 +59,7 @@ void optiunea_1_numarare(char a[105][105], int n, int m) {
     for (i = 0; i < n; ++i) {
         for (j = 0; j < m; ++j) {
             count = 0;
+            // Numaram nr de becuri adiacente.
             if (a[i][j] == '0' || a[i][j] == '1' || a[i][j] == '2' || a[i][j] == '3' || a[i][j] == '4') {
                 if (a[i - 1][j] == 'L')
                     count++;
@@ -66,6 +70,7 @@ void optiunea_1_numarare(char a[105][105], int n, int m) {
                 if (a[i][j + 1] == 'L')
                     count++;
                 if (count == a[i][j] - '0') {
+                    // Daca numarul de becuri adiacente este egal cu cel de pe celula numerotata, marcam cu x, deoarece nu mai avem unde sa plasam becuri.
                     if (a[i - 1][j] == '-')
                         a[i - 1][j] = 'x';
                     if (a[i][j - 1] == '-')
@@ -85,9 +90,11 @@ bool optiunea_2_verificare(char a[105][105], int n, int m) {
     bool some = 1;
     for (i = 0; i < n; ++i) {
         for (j = 0; j < m; ++j) {
+            // Gasesc un bec.
             if (a[i][j] == 'L') {
                 some = 1;
                 r = i - 1;
+                // Verific sa vad daca exista si alte becuri pe linia sau coloana becului gasit!
                 while (r >= 0 && ok(a[r][j])) {
                     if (a[r][j] == 'L') {
                         some = false;
@@ -131,6 +138,7 @@ bool optiunea_2_numarare(char a[105][105], int n, int m) {
     for (i = 0; i < n; ++i) {
         for (j = 0; j < m; ++j) {
             count = 0;
+            // Verific sa vad daca am o celula numerotata.
             if (a[i][j] == '0' || a[i][j] == '1' || a[i][j] == '2' || a[i][j] == '3' || a[i][j] == '4') {
                 if (a[i - 1][j] == 'L')
                     count++;
@@ -141,6 +149,7 @@ bool optiunea_2_numarare(char a[105][105], int n, int m) {
                 if (a[i][j + 1] == 'L')
                     count++;
             }
+            // Daca numarul celulei este mai mic decat nr de becuri, atunci conditia nu se respecta.
             if (count > a[i][j] - '0')
                 ok = false;
         }
