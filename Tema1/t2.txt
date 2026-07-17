@@ -1,0 +1,268 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct tip_nava {
+	char nume[16];
+	char litera;
+	int lungime;
+	int divizor;
+} tip_nava;
+
+typedef struct nava {
+	char nume[16];
+	int r_start, c_start;
+	int r_end, c_end;
+	int lungime;
+	int lovituri;
+	int distrusa;
+} nava;
+
+typedef struct jucator {
+	int n, m;
+	int **grid;
+	int **id_nava;
+	int **atacat;
+	nava *nave;
+	int nr_nave_plasate;
+	int nave_ramase;
+} jucator;
+
+tip_nava TIPURI[5] = {
+	{"Shinano", 'S', 5, 70},
+	{"Yamato", 'Y', 4, 55},
+	{"Belfast", 'B', 3, 40},
+	{"Laffey", 'L', 2, 30},
+	{"Albacore", 'A', 1, 20}
+};
+
+tip_nava *gaseste_tip(char litera)
+{
+	for (int i = 0; i < 5; i++) {
+		if (TIPURI[i].litera == litera)
+			return &TIPURI[i];
+	}
+	return NULL;
+}
+
+int **aloca_matrice(int n, int m)
+{
+	int **mat = malloc((n + 1) * sizeof(int *));
+	for (int i = 0; i <= n; i++) {
+		mat[i] = calloc(m + 1, sizeof(int));
+	}
+	return mat;
+}
+
+void elibereaza_matrice(int **mat, int n)
+{
+	for (int i = 0; i <= n; i++) {
+		free(mat[i]);
+	}
+	free(mat);
+}
+
+void init_jucator(jucator *j, int n, int m, int total_nave)
+{
+	j->n = n;
+	j->m = m;
+	j->grid = aloca_matrice(n, m);
+	j->id_nava = aloca_matrice(n, m);
+	j->atacat = aloca_matrice(n, m);
+	j->nave = malloc((total_nave + 1) * sizeof(nava));
+	j->nr_nave_plasate = 0;
+	j->nave_ramase = 0;
+}
+
+void elibereaza_jucator(jucator *j)
+{
+	elibereaza_matrice(j->grid, j->n);
+	elibereaza_matrice(j->id_nava, j->n);
+	elibereaza_matrice(j->atacat, j->n);
+	free(j->nave);
+}
+
+void afiseaza_tabla(jucator *j)
+{
+	for (int i = 1; i <= j->n; i++) {
+		for (int col = 1; col <= j->m; col++) {
+			printf("%d", j->grid[i][col]);
+			if (col < j->m)
+				printf(" ");
+		}
+		printf("\n");
+	}
+}
+
+int incearca_plaseaza_nava(jucator *j, char tip, char orient, int x, int y, char *mesaj)
+{
+	tip_nava *t = gaseste_tip(tip);
+	int lungime = t->lungime;
+	int r2, c2;
+	const char *orientare_text;
+
+	if (orient == 'H') {
+		r2 = x;
+		c2 = y + lungime - 1;
+		orientare_text = "orizontal";
+	} else {
+		r2 = x - lungime + 1;
+		c2 = y;
+		orientare_text = "vertical";
+	}
+
+	int valid = 1;
+	if (x < 1 || x > j->n || y < 1 || y > j->m)
+		valid = 0;
+	if (r2 < 1 || r2 > j->n || c2 < 1 || c2 > j->m)
+		valid = 0;
+
+	int r_min = (x < r2) ? x : r2;
+	int r_max = (x > r2) ? x : r2;
+	int c_min = (y < c2) ? y : c2;
+	int c_max = (y > c2) ? y : c2;
+
+	if (valid) {
+		for (int i = r_min; i <= r_max && valid; i++) {
+			for (int col = c_min; col <= c_max && valid; col++) {
+				if (j->grid[i][col] != 0)
+					valid = 0;
+			}
+		}
+	}
+
+	if (!valid) {
+		sprintf(mesaj, "Nava %s nu poate fi amplasata %s la coordonatele (%d, %d).",
+			t->nume, orientare_text, x, y);
+		return 0;
+	}
+
+	j->nr_nave_plasate++;
+	int idx = j->nr_nave_plasate;
+	strcpy(j->nave[idx].nume, t->nume);
+	j->nave[idx].r_start = x;
+	j->nave[idx].c_start = y;
+	j->nave[idx].r_end = r2;
+	j->nave[idx].c_end = c2;
+	j->nave[idx].lungime = lungime;
+	j->nave[idx].lovituri = 0;
+	j->nave[idx].distrusa = 0;
+
+	for (int i = r_min; i <= r_max; i++) {
+		for (int col = c_min; col <= c_max; col++) {
+			j->grid[i][col] = lungime;
+			j->id_nava[i][col] = idx;
+		}
+	}
+
+	j->nave_ramase++;
+	return 1;
+}
+
+void proceseaza_plasari(jucator *jucatori, long long total_pe_jucator)
+{
+	long long total_ture = total_pe_jucator * 2;
+	for (long long tura = 0; tura < total_ture; tura++) {
+		int cine = tura % 2;
+		jucator *j = &jucatori[cine];
+		while (1) {
+			char tip, orient;
+			int x, y;
+			scanf(" %c %c %d %d", &tip, &orient, &x, &y);
+			char mesaj[100];
+			if (incearca_plaseaza_nava(j, tip, orient, x, y, mesaj))
+				break;
+			printf("%s\n", mesaj);
+		}
+	}
+}
+
+void proceseaza_atacuri(jucator *jucatori)
+{
+	long long atac = 0;
+	int joc_terminat = 0;
+
+	while (!joc_terminat) {
+		int atacator = atac % 2;
+		int nr_atacator = atacator + 1;
+		jucator *ap = &jucatori[1 - atacator];
+
+		int x, y;
+		if (scanf("%d %d", &x, &y) != 2)
+			break;
+		atac++;
+
+		if (x < 1 || x > ap->n || y < 1 || y > ap->m) {
+			printf("Jucatorul %d a ratat o lovitura la coordonatele (%d, %d).\n",
+				nr_atacator, x, y);
+			continue;
+		}
+
+		if (ap->atacat[x][y]) {
+			printf("Coordonatele (%d, %d) au fost deja atacate de jucatorul %d.\n",
+				x, y, nr_atacator);
+			continue;
+		}
+		ap->atacat[x][y] = 1;
+
+		int sid = ap->id_nava[x][y];
+		if (sid == 0 || ap->nave[sid].distrusa) {
+			printf("Jucatorul %d a ratat o lovitura la coordonatele (%d, %d).\n",
+				nr_atacator, x, y);
+			continue;
+		}
+
+		nava *s = &ap->nave[sid];
+		s->lovituri++;
+		int e_cap = (x == s->r_start && y == s->c_start);
+
+		if (e_cap || s->lovituri == s->lungime) {
+			s->distrusa = 1;
+			ap->nave_ramase--;
+			printf("Jucatorul %d a distrus o nava %s plasata intre coordonatele (%d, %d) si (%d, %d).\n",
+				nr_atacator, s->nume, s->r_start, s->c_start, s->r_end, s->c_end);
+			if (ap->nave_ramase == 0) {
+				printf("Jucatorul %d a castigat.\n", nr_atacator);
+				joc_terminat = 1;
+			}
+		} else {
+			printf("Jucatorul %d a lovit o nava %s la coordonatele (%d, %d).\n",
+				nr_atacator, s->nume, x, y);
+		}
+	}
+}
+
+int main(void)
+{
+	int j_meciuri;
+	scanf("%d", &j_meciuri);
+
+	for (int meci = 0; meci < j_meciuri; meci++) {
+		int n, m;
+		scanf("%d %d", &n, &m);
+
+		long long celule = (long long) n * m;
+		long long total_pe_jucator = 0;
+		for (int i = 0; i < 5; i++) {
+			total_pe_jucator += celule / TIPURI[i].divizor;
+		}
+
+		jucator jucatori[2];
+		init_jucator(&jucatori[0], n, m, total_pe_jucator);
+		init_jucator(&jucatori[1], n, m, total_pe_jucator);
+
+		proceseaza_plasari(jucatori, total_pe_jucator);
+
+		afiseaza_tabla(&jucatori[0]);
+		printf("\n");
+		afiseaza_tabla(&jucatori[1]);
+		printf("\n");
+
+		proceseaza_atacuri(jucatori);
+
+		elibereaza_jucator(&jucatori[0]);
+		elibereaza_jucator(&jucatori[1]);
+	}
+
+	return 0;
+}

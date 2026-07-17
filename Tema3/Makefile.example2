@@ -1,0 +1,37 @@
+# Copyright PCLP Team, 2025
+
+# Compiler setup.
+CC=gcc
+CFLAGS=-Wall -Wextra -std=c99
+
+# Pick all sources.
+SRCS=$(wildcard *.c)
+OBJS=$(SRCS:%.c=%.o)
+
+# Define targets, e.g., ninel, codeinvim, vectsecv, nomogram.
+TARGETS=ninel codeinvim vectsecv nomogram
+
+# Manually define all targets.
+build: $(OBJS) $(TARGETS)
+
+ninel: ninel.c
+	$(CC) $(CFLAGS) $@.o -o $@
+
+codeinvim: codeinvim.c
+	$(CC) $(CFLAGS) $@.o -o $@
+
+vectsecv: vectsecv.c
+	$(CC) $(CFLAGS) $@.o -o $@
+
+nomogram: nomogram.c
+	$(CC) $(CFLAGS) $@.o -o $@
+
+# Pack the solution into a zip file.
+pack:
+	zip -FSr 3XYCA_FirstnameLastname_Tema0.zip README Makefile *.c *.h
+
+# Clean the solution.
+clean:
+	rm -f $(TARGETS) $(OBJS)
+
+.PHONY: pack clean
